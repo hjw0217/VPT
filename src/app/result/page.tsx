@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { CheckCircle, AlertTriangle, Music, RefreshCw, Share2, ArrowLeft } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { CheckCircle, AlertTriangle, Music, RefreshCw, Share2, Download, ArrowLeft } from 'lucide-react';
 import { mbtiTypes, type MBTIType } from '@/lib/mbti-data';
 
 interface TestResult {
@@ -156,6 +157,8 @@ export default function ResultPage() {
   const [result, setResult] = useState<TestResult>(defaultResult);
   const [mbtiType, setMbtiType] = useState<MBTIType>(mbtiTypes['ESFJ']);
   const [mounted, setMounted] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -172,6 +175,66 @@ export default function ResultPage() {
     setMounted(true);
   }, []);
 
+  const handleShareImage = async () => {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2,
+        backgroundColor: '#F8F4EC',
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      link.download = `声乐性格测试_${mbtiType.code}_${mbtiType.name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch {
+      const text = `我的声乐人格类型是 ${mbtiType.code} ${mbtiType.name}！快来测测你的专属演唱人格吧～`;
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(text);
+          alert('分享文案已复制到剪贴板！');
+        } catch {
+          // silent
+        }
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const handleCopyImage = async () => {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const canvas = await html2canvas(shareCardRef.current, {
+        scale: 2,
+        backgroundColor: '#F8F4EC',
+        useCORS: true,
+        logging: false,
+      });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob }),
+          ]);
+          alert('结果图片已复制到剪贴板，可直接粘贴分享！');
+        } catch {
+          const link = document.createElement('a');
+          link.download = `声乐性格测试_${mbtiType.code}_${mbtiType.name}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      }, 'image/png');
+    } catch {
+      // silent
+    } finally {
+      setSharing(false);
+    }
+  };
+
   if (!mounted) {
     return (
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -182,20 +245,63 @@ export default function ResultPage() {
     );
   }
 
-  const handleShare = async () => {
-    const text = `我的声乐人格类型是 ${mbtiType.code} ${mbtiType.name}！快来测测你的专属演唱人格吧～`;
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert('分享文案已复制到剪贴板！');
-      } catch {
-        // fallback
-      }
-    }
-  };
-
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      {/* Share Card - hidden visual, used for image capture */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        <div ref={shareCardRef} style={{ width: 420, padding: 40, background: '#F8F4EC', fontFamily: 'Georgia, serif' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{ fontSize: 14, color: '#7B7164', letterSpacing: 6, marginBottom: 12, textTransform: 'uppercase' }}>声乐性格测试</div>
+            <div style={{ fontSize: 48, fontWeight: 'bold', color: '#B9975B', letterSpacing: 8, marginBottom: 8 }}>{mbtiType.code}</div>
+            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#1B1712', marginBottom: 6 }}>{mbtiType.name}</div>
+            <div style={{ fontSize: 15, color: '#7B7164' }}>{mbtiType.subtitle}</div>
+          </div>
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+            <div style={{ width: 40, height: 1, background: 'rgba(185,151,91,0.3)' }} />
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(185,151,91,0.5)', margin: '0 10px' }} />
+            <div style={{ width: 40, height: 1, background: 'rgba(185,151,91,0.3)' }} />
+          </div>
+          {/* Core trait */}
+          <div style={{ textAlign: 'center', fontSize: 15, color: '#1B1712', lineHeight: 1.8, marginBottom: 24, padding: '0 16px' }}>{mbtiType.coreTrait}</div>
+          {/* Strengths & Weaknesses */}
+          <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 'bold', color: '#1B1712', marginBottom: 8 }}>优势</div>
+              {mbtiType.strengths.map((s: string, i: number) => (
+                <div key={i} style={{ fontSize: 13, color: '#7B7164', lineHeight: 1.7, marginBottom: 4, paddingLeft: 10, position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, top: 8, width: 4, height: 4, borderRadius: '50%', background: '#B9975B' }} />
+                  {s}
+                </div>
+              ))}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 'bold', color: '#1B1712', marginBottom: 8 }}>成长空间</div>
+              {mbtiType.weaknesses.map((w: string, i: number) => (
+                <div key={i} style={{ fontSize: 13, color: '#7B7164', lineHeight: 1.7, marginBottom: 4, paddingLeft: 10, position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 0, top: 8, width: 4, height: 4, borderRadius: '50%', background: '#7B7164' }} />
+                  {w}
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Songs */}
+          <div style={{ borderTop: '1px solid rgba(185,151,91,0.2)', paddingTop: 20 }}>
+            <div style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', color: '#1B1712', marginBottom: 12 }}>适配歌曲</div>
+            {mbtiType.songs.map((song: { name: string; artist: string }, i: number) => (
+              <div key={i} style={{ fontSize: 14, color: '#1B1712', textAlign: 'center', marginBottom: 4 }}>
+                {song.name} — {song.artist}
+              </div>
+            ))}
+          </div>
+          {/* Footer */}
+          <div style={{ textAlign: 'center', marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(185,151,91,0.2)' }}>
+            <div style={{ fontSize: 11, color: '#7B7164' }}>扫码或搜索「声乐性格测试」开始你的专属测评</div>
+          </div>
+        </div>
+      </div>
+
       {/* Result Header */}
       <section className="text-center py-8 sm:py-12">
         <p className="text-sm sm:text-base font-medium text-muted-foreground tracking-widest uppercase mb-3 sm:mb-4">你的声乐人格类型</p>
@@ -335,29 +441,40 @@ export default function ResultPage() {
 
       {/* Actions */}
       <section className="text-center py-8 sm:py-10 space-y-5 sm:space-y-6">
-        <div className="flex items-center justify-center gap-3 sm:gap-5">
-          <Link
-            href="/test"
-            className="inline-flex items-center gap-2 sm:gap-2.5 bg-primary text-primary-foreground px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float"
-          >
-            <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
-            重新测试
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
           <button
-            onClick={handleShare}
-            className="inline-flex items-center gap-2 sm:gap-2.5 border-2 border-primary text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-primary/5 transition-colors cursor-pointer"
+            onClick={handleCopyImage}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 sm:gap-2.5 bg-primary text-primary-foreground px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float disabled:opacity-60 cursor-pointer w-full sm:w-auto justify-center"
           >
             <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            分享结果
+            {sharing ? '生成中...' : '分享结果图片'}
+          </button>
+          <button
+            onClick={handleShareImage}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 sm:gap-2.5 border-2 border-primary text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-60 w-full sm:w-auto justify-center"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            保存图片
           </button>
         </div>
         <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
+          href="/test"
+          className="inline-flex items-center gap-2 sm:gap-2.5 bg-foreground text-background px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
         >
-          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          返回首页
+          <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
+          重新测试
         </Link>
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            返回首页
+          </Link>
+        </div>
       </section>
     </main>
   );
