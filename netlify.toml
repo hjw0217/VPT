@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm run build"
+  command = "pnpm install && pnpm next build"
   publish = ".next"
 
 [[plugins]]
