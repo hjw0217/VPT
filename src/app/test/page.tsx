@@ -57,20 +57,20 @@ export default function TestPage() {
   }, [answers, router]);
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-8">
+    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Title */}
-      <div className="text-center mb-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground mb-2">声乐性格测试</h1>
-        <p className="text-muted-foreground text-base">探索你的演唱性格类型，发现属于你的声乐之路</p>
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-1.5 sm:mb-2">声乐性格测试</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">探索你的演唱性格类型，发现属于你的声乐之路</p>
       </div>
 
       {/* Progress */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-base font-medium text-foreground">第 {currentQuestion + 1} 题 / 共 {questions.length} 题</span>
-          <span className="text-base font-bold text-primary">{Math.round(progress)}%</span>
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <span className="text-sm sm:text-base font-medium text-foreground">第 {currentQuestion + 1} 题 / 共 {questions.length} 题</span>
+          <span className="text-sm sm:text-base font-bold text-primary">{Math.round(progress)}%</span>
         </div>
-        <div className="w-full h-4 bg-muted rounded-full overflow-hidden">
+        <div className="w-full h-3 sm:h-4 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -79,33 +79,33 @@ export default function TestPage() {
       </div>
 
       {/* Dimension Badge */}
-      <div className="mb-8 flex justify-center">
-        <span className="inline-flex items-center px-5 py-2 rounded-full text-base font-medium bg-primary/10 text-primary border border-primary/20">
-          <DimensionIcon className="w-5 h-5 mr-2" />
+      <div className="mb-6 sm:mb-8 flex justify-center">
+        <span className="inline-flex items-center px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-sm sm:text-base font-medium bg-primary/10 text-primary border border-primary/20">
+          <DimensionIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
           {q.dimensionLabel}
         </span>
       </div>
 
       {/* Question Card */}
       <div className={`relative transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="bg-card rounded-2xl shadow-card p-8 sm:p-10">
-          <div className="text-center mb-10">
-            <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary text-xl font-bold mb-5">
+        <div className="bg-card rounded-2xl shadow-card p-5 sm:p-8 sm:sm:p-10">
+          <div className="text-center mb-8 sm:mb-10">
+            <span className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary text-lg sm:text-xl font-bold mb-4 sm:mb-5">
               {currentQuestion + 1}
             </span>
-            <h2 className="font-serif text-2xl font-semibold text-foreground leading-relaxed">{q.text}</h2>
+            <h2 className="font-serif text-xl sm:text-2xl font-semibold text-foreground leading-relaxed">{q.text}</h2>
           </div>
-          <div className="space-y-5 max-w-xl mx-auto">
+          <div className="space-y-4 sm:space-y-5 max-w-xl mx-auto">
             {/* Option A */}
             <button
               onClick={() => handleAnswer('A')}
-              className={`w-full text-left border-2 rounded-2xl p-6 flex items-start gap-5 transition-all duration-200 cursor-pointer
+              className={`w-full text-left border-2 rounded-2xl p-4 sm:p-6 flex items-start gap-3 sm:gap-5 transition-all duration-200 cursor-pointer
                 ${answers[q.id] === 'A'
                   ? 'border-primary bg-primary/5 shadow-md'
                   : 'border-outline-variant/30 bg-card hover:border-primary hover:shadow-md'
                 }`}
             >
-              <span className={`shrink-0 w-11 h-11 rounded-full border-2 flex items-center justify-center text-lg font-bold transition-all duration-200
+              <span className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-200
                 ${answers[q.id] === 'A'
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-outline text-muted-foreground'
@@ -113,18 +113,18 @@ export default function TestPage() {
               >
                 A
               </span>
-              <span className="text-foreground text-lg leading-loose pt-1.5">{q.optionA}</span>
+              <span className="text-foreground text-base sm:text-lg leading-relaxed sm:leading-loose pt-1 sm:pt-1.5">{q.optionA}</span>
             </button>
             {/* Option B */}
             <button
               onClick={() => handleAnswer('B')}
-              className={`w-full text-left border-2 rounded-2xl p-6 flex items-start gap-5 transition-all duration-200 cursor-pointer
+              className={`w-full text-left border-2 rounded-2xl p-4 sm:p-6 flex items-start gap-3 sm:gap-5 transition-all duration-200 cursor-pointer
                 ${answers[q.id] === 'B'
                   ? 'border-primary bg-primary/5 shadow-md'
                   : 'border-outline-variant/30 bg-card hover:border-primary hover:shadow-md'
                 }`}
             >
-              <span className={`shrink-0 w-11 h-11 rounded-full border-2 flex items-center justify-center text-lg font-bold transition-all duration-200
+              <span className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-200
                 ${answers[q.id] === 'B'
                   ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-outline text-muted-foreground'
@@ -132,50 +132,50 @@ export default function TestPage() {
               >
                 B
               </span>
-              <span className="text-foreground text-lg leading-loose pt-1.5">{q.optionB}</span>
+              <span className="text-foreground text-base sm:text-lg leading-relaxed sm:leading-loose pt-1 sm:pt-1.5">{q.optionB}</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-10 max-w-xl mx-auto">
+      <div className="flex items-center justify-between mt-8 sm:mt-10 max-w-xl mx-auto">
         <button
           onClick={() => goToQuestion(currentQuestion - 1)}
           disabled={currentQuestion === 0}
-          className="flex items-center gap-2 px-6 py-3 text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           上一题
         </button>
 
         {isLast && allAnswered ? (
           <button
             onClick={handleFinish}
-            className="flex items-center gap-2.5 bg-primary text-primary-foreground px-8 py-3.5 rounded-xl text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float cursor-pointer"
+            className="flex items-center gap-2 sm:gap-2.5 bg-primary text-primary-foreground px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float cursor-pointer"
           >
-            <Play className="w-5 h-5" />
+            <Play className="w-4 h-4 sm:w-5 sm:h-5" />
             查看结果
           </button>
         ) : (
           <button
             onClick={() => goToQuestion(currentQuestion + 1)}
             disabled={currentQuestion === questions.length - 1 || !isAnswered}
-            className="flex items-center gap-2 px-6 py-3 text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-base sm:text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
           >
             下一题
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
       </div>
 
-      {/* Question dots - larger for elderly */}
-      <div className="flex items-center justify-center gap-2.5 mt-10 flex-wrap">
+      {/* Question dots */}
+      <div className="flex items-center justify-center gap-2 sm:gap-2.5 mt-8 sm:mt-10 flex-wrap">
         {questions.map((_, idx) => (
           <button
             key={idx}
             onClick={() => goToQuestion(idx)}
-            className={`w-4 h-4 rounded-full transition-all duration-200 cursor-pointer
+            className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-200 cursor-pointer
               ${idx === currentQuestion ? 'bg-primary scale-125' : answers[questions[idx].id] ? 'bg-primary/40' : 'bg-outline-variant/40'}
             `}
             aria-label={`跳转到第${idx + 1}题`}
