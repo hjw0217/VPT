@@ -58,6 +58,7 @@
   --font-sans: "Noto Sans SC", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-serif: "Georgia", "Noto Serif SC", serif;
+  --font-size-base: 18px;
   --color-primary-container: #E8D9BE;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
@@ -126,4 +127,18 @@
   --border: #4A4238;
   --input: #4A4238;
   --ring: #D4B87A;
+}
+
+html {
+  font-size: var(--font-size-base);
+}
+
+body {
+  line-height: 1.8;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 适老化：增大所有可点击元素的最小触摸区域 */
+button, a[role="button"], [data-clickable] {
+  min-height: 48px;
 }
