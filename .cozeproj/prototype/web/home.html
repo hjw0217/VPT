@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #B9975B;
+      --color-primary-container:    #E8D9BE;
+      --color-on-primary:           #FFFFFF;
+      /* === 背景 / 表面 === */
+      --color-background:                 #F8F4EC;
+      --color-surface-container-lowest:   #FFFFFF;
+      --color-surface:                    #FFFFFF;
+      --color-surface-container:          #EFE9DC;
+      --color-surface-container-high:     #E8E0D0;
+      --color-surface-container-highest:  #DFD6C4;
+      /* === 文字 === */
+      --color-on-surface:           #1B1712;
+      --color-on-surface-variant:   #7B7164;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #C8BFA8;
+      --color-outline-variant:  #DDD6C4;
+      /* === 圆角 === */
+      --radius-sm:   0.25rem;
+      --radius-md:   0.375rem;
+      --radius-lg:   0.5rem;
+      --radius-xl:   0.75rem;
+      --radius-2xl:  1rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 8px rgba(0,0,0,0.06);
+      --shadow-float:  0 10px 25px rgba(0,0,0,0.08);
+      --shadow-dialog: 0 25px 50px rgba(0,0,0,0.12);
+      /* === 字体 === */
+      --font-sans: "Noto Sans SC", system-ui, sans-serif;
+      --font-serif: "Georgia", "Noto Serif SC", serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans">
+
+  <!-- @nav:start -->
+  <header class="bg-surface sticky top-0 z-40 h-16 flex items-center justify-between border-b border-outline-variant/20">
+    <div class="w-full max-w-5xl mx-auto px-6 flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-2.5">
+        <i data-lucide="music" class="text-primary w-5 h-5"></i>
+        <span class="font-serif font-bold text-lg text-on-surface">声乐性格测试</span>
+      </a>
+      <nav class="flex items-center gap-1">
+        <a href="home.html" class="px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-md" aria-current="page">首页</a>
+        <a href="test.html" class="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-colors">开始测试</a>
+      </nav>
+    </div>
+  </header>
+  <!-- @nav:end -->
+
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <!-- @main-content:start -->
+
+    <!-- 英雄区 Hero Section -->
+    <section id="hero-section" class="text-center py-16">
+      <div class="mb-6">
+        <i data-lucide="music-2" class="w-12 h-12 text-primary mx-auto mb-6"></i>
+      </div>
+      <h1 class="font-serif text-4xl font-bold text-on-surface mb-4 tracking-wide">声乐性格测试</h1>
+      <p class="font-serif text-xl text-primary mb-8 tracking-wider">解锁你的专属演唱人格</p>
+      <div class="max-w-2xl mx-auto">
+        <p class="text-sm text-on-surface-variant leading-relaxed">
+          参考MBTI四维度划分逻辑，结合中老年人声乐学习场景精心设计20道测试题，最终将你的声乐性格划分为8种独特类型。发现你在演唱中的内在驱动力与表达方式，开启一段专属于你的声乐之旅。
+        </p>
+      </div>
+      <div class="mt-8 flex items-center justify-center gap-6 text-xs text-on-surface-variant">
+        <span class="flex items-center gap-1.5"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i>20道精选题目</span>
+        <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+        <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5"></i>4大维度测评</span>
+        <span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+        <span class="flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>8种人格类型</span>
+      </div>
+    </section>
+
+    <!-- 金色装饰分割线 -->
+    <div class="flex items-center justify-center mb-12">
+      <div class="w-16 h-px bg-primary/30"></div>
+      <div class="w-2 h-2 rounded-full bg-primary/50 mx-3"></div>
+      <div class="w-16 h-px bg-primary/30"></div>
+    </div>
+
+    <!-- 四个维度介绍卡片区 -->
+    <section id="dimensions-section" class="mb-16">
+      <div class="text-center mb-10">
+        <h2 class="font-serif text-2xl font-bold text-on-surface mb-2">测评维度</h2>
+        <p class="text-sm text-on-surface-variant">从四个核心维度解读你的声乐性格</p>
+      </div>
+      <div class="grid grid-cols-2 gap-5">
+
+        <!-- 维度卡片1-演唱动力源 -->
+        <div id="dimension-card-1" class="bg-surface rounded-lg shadow-card p-6 relative overflow-hidden border-t-2 border-primary/40">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="zap" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-semibold text-on-surface mb-1">演唱动力源</h3>
+              <p class="text-xs text-primary font-medium mb-2">E 外倾 / I 内倾</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">你的演唱能量来自何处？是在群体合唱中汲取力量，还是于独处吟唱时找回自我？</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 维度卡片2-演唱表达偏好 -->
+        <div id="dimension-card-2" class="bg-surface rounded-lg shadow-card p-6 relative overflow-hidden border-t-2 border-primary/40">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="eye" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-semibold text-on-surface mb-1">演唱表达偏好</h3>
+              <p class="text-xs text-primary font-medium mb-2">S 实感 / N 直觉</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">你更注重乐谱的精准呈现，还是追求意境的自由表达？实感型重细节，直觉型重感受。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 维度卡片3-演唱决策方式 -->
+        <div id="dimension-card-3" class="bg-surface rounded-lg shadow-card p-6 relative overflow-hidden border-t-2 border-primary/40">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="heart" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-semibold text-on-surface mb-1">演唱决策方式</h3>
+              <p class="text-xs text-primary font-medium mb-2">T 理性 / F 感性</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">面对演唱技巧的选择时，你倾向于理性分析发声方法，还是感性跟随内心情感？</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 维度卡片4-演唱习惯 -->
+        <div id="dimension-card-4" class="bg-surface rounded-lg shadow-card p-6 relative overflow-hidden border-t-2 border-primary/40">
+          <div class="flex items-start gap-4">
+            <div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="compass" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-semibold text-on-surface mb-1">演唱习惯</h3>
+              <p class="text-xs text-primary font-medium mb-2">J 判断 / P 感知</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">你喜欢提前规划练习曲目和进度，还是随兴所至、顺其自然地享受每一次演唱？</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 金色装饰分割线 -->
+    <div class="flex items-center justify-center mb-12">
+      <div class="w-16 h-px bg-primary/30"></div>
+      <div class="w-2 h-2 rounded-full bg-primary/50 mx-3"></div>
+      <div class="w-16 h-px bg-primary/30"></div>
+    </div>
+
+    <!-- 8种声乐人格类型预览区 -->
+    <section id="types-section" class="mb-16">
+      <div class="text-center mb-10">
+        <h2 class="font-serif text-2xl font-bold text-on-surface mb-2">八种声乐人格</h2>
+        <p class="text-sm text-on-surface-variant">四维度组合，形成你独一无二的演唱人格</p>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+
+        <!-- 类型卡片1-合唱领唱者 -->
+        <div id="type-card-1" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">E-S-T-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">合唱领唱者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">天生的舞台焦点，以理性与热情引领群体共鸣</p>
+        </div>
+
+        <!-- 类型卡片2-温情传唱者 -->
+        <div id="type-card-2" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">E-S-F-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">温情传唱者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">以温暖嗓音连接每一位听众的心灵</p>
+        </div>
+
+        <!-- 类型卡片3-经典创新者 -->
+        <div id="type-card-3" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">E-N-T-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">经典创新者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">以远见与魄力突破传统，赋予经典全新生命力</p>
+        </div>
+
+        <!-- 类型卡片4-韵味歌者 -->
+        <div id="type-card-4" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">E-N-F-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">韵味歌者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">以直觉感受旋律，用情感感染每一位听众</p>
+        </div>
+
+        <!-- 类型卡片5-精益演唱者 -->
+        <div id="type-card-5" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">I-S-T-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">精益演唱者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">沉静专注，以匠心打磨每一个音符与气息</p>
+        </div>
+
+        <!-- 类型卡片6-治愈传唱者 -->
+        <div id="type-card-6" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">I-S-F-J</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">治愈传唱者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">内敛温柔，以真挚演唱抚慰人心</p>
+        </div>
+
+        <!-- 类型卡片7-小众怀旧者 -->
+        <div id="type-card-7" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">I-N-T-P</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">小众怀旧者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">独到的审美眼光，在旧曲中发现被忽略的美</p>
+        </div>
+
+        <!-- 类型卡片8-情怀吟唱者 -->
+        <div id="type-card-8" class="bg-surface rounded-lg shadow-card p-5 relative border border-outline-variant/15">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="font-serif text-sm font-bold text-primary tracking-wider">I-N-F-P</span>
+            <span class="w-px h-3.5 bg-outline-variant/30"></span>
+            <span class="font-serif text-sm font-semibold text-on-surface">情怀吟唱者</span>
+          </div>
+          <p class="text-xs text-on-surface-variant leading-relaxed">以诗意与深情吟唱，用歌声书写内心独白</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA按钮区 -->
+    <section id="cta-section" class="text-center py-12">
+      <div class="max-w-md mx-auto">
+        <p class="font-serif text-lg text-on-surface mb-6">准备好了吗？</p>
+        <a href="test.html" id="btn-start-test"
+           class="inline-flex items-center gap-2.5 bg-primary text-on-primary px-10 py-3.5 rounded-lg text-base font-semibold
+                  hover:opacity-90 active:scale-[0.98] transition-all shadow-float">
+          <i data-lucide="play" class="w-4 h-4"></i>
+          开始测试
+        </a>
+        <p class="mt-4 text-xs text-on-surface-variant">约5分钟 · 20道题目 · 即时获取结果</p>
+      </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer id="page-footer" class="text-center py-8 border-t border-outline-variant/15 mt-8">
+      <p class="text-xs text-on-surface-variant">© 2025 声乐性格测试 VPT · 仅供参考与娱乐</p>
+    </footer>
+
+    <!-- @main-content:end -->
+  </main>
+
+  <script>lucide.createIcons();</script>
+
+  <script>
+  $(function() {
+
+    // CTA按钮点击跳转
+    $('#btn-start-test').on('click', function(e) {
+      // 链接已有href，此处可添加统计等逻辑
+      console.log('用户点击开始测试按钮，即将跳转至测试页');
+    });
+
+    // 维度卡片悬停交互增强
+    $('#dimensions-section').on('mouseenter', '[id^="dimension-card-"]', function() {
+      $(this).css({ transform: 'translateY(-2px)', transition: 'transform 0.25s ease' });
+    }).on('mouseleave', '[id^="dimension-card-"]', function() {
+      $(this).css({ transform: 'translateY(0)', transition: 'transform 0.25s ease' });
+    });
+
+    // 类型卡片悬停交互增强
+    $('#types-section').on('mouseenter', '[id^="type-card-"]', function() {
+      $(this).css({ transform: 'translateY(-2px)', transition: 'transform 0.25s ease' });
+    }).on('mouseleave', '[id^="type-card-"]', function() {
+      $(this).css({ transform: 'translateY(0)', transition: 'transform 0.25s ease' });
+    });
+
+  });
+  </script>
+</body>
+
+</html>

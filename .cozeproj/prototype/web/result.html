@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #B9975B;
+      --color-primary-container:    #E8D9BE;
+      --color-on-primary:           #FFFFFF;
+      /* === 背景 / 表面 === */
+      --color-background:                 #F8F4EC;
+      --color-surface-container-lowest:   #FFFFFF;
+      --color-surface:                    #FFFFFF;
+      --color-surface-container:          #EFE9DC;
+      --color-surface-container-high:     #E8E0D0;
+      --color-surface-container-highest:  #DFD6C4;
+      /* === 文字 === */
+      --color-on-surface:           #1B1712;
+      --color-on-surface-variant:   #7B7164;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #C8BFA8;
+      --color-outline-variant:  #DDD6C4;
+      /* === 圆角 === */
+      --radius-sm:   0.25rem;
+      --radius-md:   0.375rem;
+      --radius-lg:   0.5rem;
+      --radius-xl:   0.75rem;
+      --radius-2xl:  1rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 8px rgba(0,0,0,0.06);
+      --shadow-float:  0 10px 25px rgba(0,0,0,0.08);
+      --shadow-dialog: 0 25px 50px rgba(0,0,0,0.12);
+      /* === 字体 === */
+      --font-sans: "Noto Sans SC", system-ui, sans-serif;
+      --font-serif: "Georgia", "Noto Serif SC", serif;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans">
+
+  <!-- @nav:start 导航组件，不需要的页面则不要复制此段 -->
+  <header class="bg-surface sticky top-0 z-40 h-16 flex items-center justify-between border-b border-outline-variant/20">
+    <div class="w-full max-w-5xl mx-auto px-6 flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-2.5">
+        <i data-lucide="music" class="text-primary w-5 h-5"></i>
+        <span class="font-serif font-bold text-lg text-on-surface">声乐性格测试</span>
+      </a>
+      <nav class="flex items-center gap-1">
+        <a href="home.html" class="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-colors">首页</a>
+        <a href="test.html" class="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-colors">开始测试</a>
+        <a href="result.html" class="px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-md" aria-current="page">测试结果</a>
+      </nav>
+    </div>
+  </header>
+  <!-- @nav:end 导航组件，不需要的页面则不要复制此段 -->
+
+  <main class="max-w-4xl mx-auto px-6 py-8">
+    <!-- @main-content:start -->
+
+    <!-- 结果头部区域 -->
+    <section id="result-header" class="text-center py-10">
+      <p class="text-sm font-medium text-on-surface-variant tracking-widest uppercase mb-3">你的声乐人格类型</p>
+      <h1 id="mbti-code" class="font-serif text-6xl font-bold text-primary tracking-[0.15em] mb-4" style="text-shadow: 0 1px 2px rgba(185,151,91,0.15);">E-S-F-J</h1>
+      <h2 id="mbti-name" class="font-serif text-3xl font-bold text-on-surface mb-2">温情传唱者</h2>
+      <p id="mbti-subtitle" class="text-base text-on-surface-variant">外倾 · 实感 · 感性 · 判断</p>
+    </section>
+
+    <!-- 雷达图可视化区域 -->
+    <section id="radar-section" class="bg-surface rounded-xl shadow-card p-6 mb-8">
+      <h3 class="font-serif text-lg font-bold text-on-surface text-center mb-5">维度得分概览</h3>
+      <div id="radar-container" class="flex justify-center">
+        <canvas id="radar-chart" width="420" height="420"></canvas>
+      </div>
+      <!-- 维度得分条 -->
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4 mt-6 max-w-lg mx-auto">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">外倾 E</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-e" class="h-full bg-primary rounded-full transition-all duration-700" style="width: 72%;"></div>
+          </div>
+          <span id="score-e" class="text-sm font-bold text-primary w-8 text-right">72</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">内倾 I</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-i" class="h-full bg-surface-container-high rounded-full transition-all duration-700" style="width: 28%;"></div>
+          </div>
+          <span id="score-i" class="text-sm text-on-surface-variant w-8 text-right">28</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">实感 S</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-s" class="h-full bg-primary rounded-full transition-all duration-700" style="width: 65%;"></div>
+          </div>
+          <span id="score-s" class="text-sm font-bold text-primary w-8 text-right">65</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">直觉 N</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-n" class="h-full bg-surface-container-high rounded-full transition-all duration-700" style="width: 35%;"></div>
+          </div>
+          <span id="score-n" class="text-sm text-on-surface-variant w-8 text-right">35</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">感性 F</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-f" class="h-full bg-primary rounded-full transition-all duration-700" style="width: 78%;"></div>
+          </div>
+          <span id="score-f" class="text-sm font-bold text-primary w-8 text-right">78</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">理性 T</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-t" class="h-full bg-surface-container-high rounded-full transition-all duration-700" style="width: 22%;"></div>
+          </div>
+          <span id="score-t" class="text-sm text-on-surface-variant w-8 text-right">22</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">判断 J</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-j" class="h-full bg-primary rounded-full transition-all duration-700" style="width: 70%;"></div>
+          </div>
+          <span id="score-j" class="text-sm font-bold text-primary w-8 text-right">70</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-on-surface">感知 P</span>
+          <div class="flex-1 mx-3 h-2 bg-surface-container rounded-full overflow-hidden">
+            <div id="bar-p" class="h-full bg-surface-container-high rounded-full transition-all duration-700" style="width: 30%;"></div>
+          </div>
+          <span id="score-p" class="text-sm text-on-surface-variant w-8 text-right">30</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 性格类型解析卡片 -->
+    <section id="analysis-section" class="bg-surface rounded-xl shadow-card p-6 mb-8">
+      <h3 class="font-serif text-lg font-bold text-on-surface mb-5">
+        <i data-lucide="sparkles" class="w-4 h-4 inline-block text-primary mr-1.5 align-text-bottom"></i>
+        性格类型解析
+      </h3>
+      <!-- 核心特质 -->
+      <div id="core-trait" class="mb-6">
+        <h4 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-2">核心特质</h4>
+        <p id="core-trait-text" class="text-base leading-relaxed text-on-surface">性格温和，演唱风格亲切自然，善于用歌声传递温暖，在合唱中常担任和谐声部的稳定力量。</p>
+      </div>
+      <!-- 优势列表 -->
+      <div id="strengths" class="mb-6">
+        <h4 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-2">优势</h4>
+        <ul class="space-y-2">
+          <!-- 列表-优势1 -->
+          <li class="flex items-start gap-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-primary mt-0.5 shrink-0"></i>
+            <span class="text-sm text-on-surface">咬字清晰，歌词表达准确到位</span>
+          </li>
+          <!-- 列表-优势2 -->
+          <li class="flex items-start gap-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-primary mt-0.5 shrink-0"></i>
+            <span class="text-sm text-on-surface">情感真挚，歌声能打动人心</span>
+          </li>
+          <!-- 列表-优势3 -->
+          <li class="flex items-start gap-2">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-primary mt-0.5 shrink-0"></i>
+            <span class="text-sm text-on-surface">在群体合唱中发挥稳定和谐作用</span>
+          </li>
+        </ul>
+      </div>
+      <!-- 不足列表 -->
+      <div id="weaknesses">
+        <h4 class="text-sm font-semibold text-on-surface-variant uppercase tracking-wide mb-2">不足</h4>
+        <ul class="space-y-2">
+          <!-- 列表-不足1 -->
+          <li class="flex items-start gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-warning mt-0.5 shrink-0"></i>
+            <span class="text-sm text-on-surface">演唱技巧打磨不够，高音区控制力待提升</span>
+          </li>
+          <!-- 列表-不足2 -->
+          <li class="flex items-start gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-warning mt-0.5 shrink-0"></i>
+            <span class="text-sm text-on-surface">风格偏保守，缺乏大胆突破的尝试</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 音乐推荐区 -->
+    <section id="recommend-section" class="mb-8">
+      <h3 class="font-serif text-lg font-bold text-on-surface mb-5">
+        <i data-lucide="disc-3" class="w-4 h-4 inline-block text-primary mr-1.5 align-text-bottom"></i>
+        为你推荐的歌曲
+      </h3>
+      <div id="song-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 列表-歌曲1 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow group">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+              <i data-lucide="music-2" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-base font-semibold text-on-surface mb-0.5">月亮代表我的心</h4>
+              <p class="text-xs text-on-surface-variant mb-2">原唱：邓丽君</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">温婉抒情的旋律完美契合你亲切自然的演唱风格，情感表达恰到好处。</p>
+            </div>
+          </div>
+        </div>
+        <!-- 列表-歌曲2 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow group">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+              <i data-lucide="music-2" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-base font-semibold text-on-surface mb-0.5">外婆的澎湖湾</h4>
+              <p class="text-xs text-on-surface-variant mb-2">原唱：潘安邦</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">民俗小调的质朴风格与你真挚的情感表达相得益彰，朗朗上口。</p>
+            </div>
+          </div>
+        </div>
+        <!-- 列表-歌曲3 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow group">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+              <i data-lucide="music-2" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-base font-semibold text-on-surface mb-0.5">甜蜜蜜</h4>
+              <p class="text-xs text-on-surface-variant mb-2">原唱：邓丽君</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">经典抒情老歌，咬字清晰的优势在此类歌曲中得到充分展现。</p>
+            </div>
+          </div>
+        </div>
+        <!-- 列表-歌曲4 -->
+        <div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow group">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+              <i data-lucide="music-2" class="w-5 h-5 text-primary"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-base font-semibold text-on-surface mb-0.5">在那遥远的地方</h4>
+              <p class="text-xs text-on-surface-variant mb-2">原唱：王洛宾</p>
+              <p class="text-sm text-on-surface-variant leading-relaxed">民俗小调的天然韵味适合你温暖自然的声线，情感真挚动人。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 测试延伸建议区 -->
+    <section id="suggestions-section" class="bg-surface rounded-xl shadow-card p-6 mb-8">
+      <h3 class="font-serif text-lg font-bold text-on-surface mb-5">
+        <i data-lucide="lightbulb" class="w-4 h-4 inline-block text-primary mr-1.5 align-text-bottom"></i>
+        延伸建议
+      </h3>
+      <div class="space-y-4">
+        <!-- 列表-建议1 -->
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+            <span class="text-xs font-bold text-primary">1</span>
+          </div>
+          <p class="text-sm text-on-surface leading-relaxed">本测试仅为参考，声乐性格并非固定不变，持续练习和探索可以拓展你的演唱风格边界。</p>
+        </div>
+        <!-- 列表-建议2 -->
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+            <span class="text-xs font-bold text-primary">2</span>
+          </div>
+          <p class="text-sm text-on-surface leading-relaxed">可根据测试结果中发现的不足，有针对性地进行提升练习，如加强气息控制或情感表达训练。</p>
+        </div>
+        <!-- 列表-建议3 -->
+        <div class="flex items-start gap-3">
+          <div class="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+            <span class="text-xs font-bold text-primary">3</span>
+          </div>
+          <p class="text-sm text-on-surface leading-relaxed">建议多唱经典老歌，在传唱经典中打磨演唱技巧，感受不同时代歌曲中的情感与韵味。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 底部操作 -->
+    <section id="action-section" class="flex flex-col sm:flex-row items-center justify-center gap-4 pb-12">
+      <a href="test.html" id="btn-retest" class="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-3 rounded-lg text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-card">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        重新测试
+      </a>
+      <button id="btn-share" class="inline-flex items-center gap-2 bg-surface-container text-on-surface px-8 py-3 rounded-lg text-sm font-semibold hover:bg-surface-container-high active:scale-[0.98] transition-all shadow-card">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+        分享结果
+      </button>
+    </section>
+
+    <!-- @main-content:end -->
+  </main>
+
+  <script>
+    $(function () {
+      // === 数据定义：8种MBTI声乐人格类型完整数据 ===
+      var typeData = {
+        'E-S-T-J': {
+          name: '合唱领唱者',
+          subtitle: '外倾 · 实感 · 理性 · 判断',
+          coreTrait: '擅长在合唱中带动节奏，演唱风格大气稳定，是天生的领唱者，能够引领团队保持整齐划一。',
+          strengths: ['音准节奏扎实，基本功过硬', '临场应变能力强，舞台表现从容', '擅长带动团队合唱气氛'],
+          weaknesses: ['情感表达不够细腻', '过于追求完美可能忽视乐趣', '对他人演唱要求较高'],
+          songs: [
+            { title: '我和我的祖国', artist: '原唱：李谷一', reason: '大气磅礴的旋律与您稳重的演唱风格完美匹配，适合展现领唱气场。' },
+            { title: '团结就是力量', artist: '原唱：合唱经典', reason: '节奏感强烈的合唱曲，您的节奏把控力能让整首歌曲铿锵有力。' },
+            { title: '歌唱祖国', artist: '原唱：合唱经典', reason: '经典红歌中的大气旋律，稳定有力的演唱能充分展现歌曲的庄严。' },
+            { title: '黄河大合唱', artist: '原唱：合唱经典', reason: '气势恢宏的合唱作品，领唱者的节奏带动至关重要。' }
+          ]
+        },
+        'E-S-F-J': {
+          name: '温情传唱者',
+          subtitle: '外倾 · 实感 · 感性 · 判断',
+          coreTrait: '性格温和，演唱风格亲切自然，善于用歌声传递温暖，在合唱中常担任和谐声部的稳定力量。',
+          strengths: ['咬字清晰，歌词表达准确到位', '情感真挚，歌声能打动人心', '在群体合唱中发挥稳定和谐作用'],
+          weaknesses: ['演唱技巧打磨不够', '风格偏保守，缺乏大胆突破的尝试'],
+          songs: [
+            { title: '月亮代表我的心', artist: '原唱：邓丽君', reason: '温婉抒情的旋律完美契合你亲切自然的演唱风格，情感表达恰到好处。' },
+            { title: '外婆的澎湖湾', artist: '原唱：潘安邦', reason: '民俗小调的质朴风格与你真挚的情感表达相得益彰，朗朗上口。' },
+            { title: '甜蜜蜜', artist: '原唱：邓丽君', reason: '经典抒情老歌，咬字清晰的优势在此类歌曲中得到充分展现。' },
+            { title: '在那遥远的地方', artist: '原唱：王洛宾', reason: '民俗小调的天然韵味适合你温暖自然的声线，情感真挚动人。' }
+          ]
+        },
+        'E-N-T-J': {
+          name: '经典创新者',
+          subtitle: '外倾 · 直觉 · 理性 · 判断',
+          coreTrait: '思维活跃，演唱风格独特，善于为经典老歌注入新的理解和创意，是旧曲新编的先行者。',
+          strengths: ['对老歌理解深刻，能发现被忽视的细节', '改编创新能力强，赋予旧曲新生命', '理性分析歌曲结构，处理精当'],
+          weaknesses: ['创新改动有时不合群', '过于追求独特可能偏离经典韵味', '对传统演唱方式缺乏耐心'],
+          songs: [
+            { title: '送别', artist: '原唱：李叔同', reason: '简约而深沉的旋律，留给创新改编空间极大，适合展现独特理解。' },
+            { title: '夜来香', artist: '原唱：李香兰', reason: '经典旋律适合重新编曲演绎，创新者能在保留韵味的同时注入新意。' },
+            { title: '何日君再来', artist: '原唱：邓丽君', reason: '老歌新编的绝佳素材，独特视角能赋予歌曲全新的情感层次。' }
+          ]
+        },
+        'E-N-F-J': {
+          name: '韵味歌者',
+          subtitle: '外倾 · 直觉 · 感性 · 判断',
+          coreTrait: '演唱风格韵味十足，善于在歌声中融入丰富情感，让经典老歌焕发新的动人光彩。',
+          strengths: ['情感表达丰富，歌声感染力强', '对歌曲韵味把握精准', '善于与听众建立情感共鸣'],
+          weaknesses: ['演唱不够稳定，状态起伏较大', '情感投入过深可能影响技术发挥', '对歌曲选择过于感性'],
+          songs: [
+            { title: '但愿人长久', artist: '原唱：邓丽君', reason: '诗意与韵味的完美结合，您丰富的情感表达能让这首歌格外动人。' },
+            { title: '天涯歌女', artist: '原唱：周璇', reason: '韵味十足的经典老歌，您的声线能完美演绎其中的百转千回。' },
+            { title: '夜上海', artist: '原唱：周璇', reason: '老上海的风情韵律，需要韵味歌者来展现其独特魅力。' },
+            { title: '玫瑰玫瑰我爱你', artist: '原唱：姚莉', reason: '欢快中带着韵味，丰富的情感表达能让歌曲更具感染力。' }
+          ]
+        },
+        'I-S-T-J': {
+          name: '精益演唱者',
+          subtitle: '内倾 · 实感 · 理性 · 判断',
+          coreTrait: '演唱风格严谨细致，对音准和节奏的把控精准，是追求完美演绎的匠心歌者。',
+          strengths: ['音准节奏把控精准，几无差错', '对歌曲细节处理精益求精', '长期练习自律性强，基本功扎实'],
+          weaknesses: ['不擅长带领合唱', '演唱风格较为保守内敛', '过度追求精确可能缺少即兴灵动'],
+          songs: [
+            { title: '茉莉花', artist: '原唱：民歌经典', reason: '旋律纯净优美，需要精准的音准和细腻的处理，正合精益演唱者风格。' },
+            { title: '康定情歌', artist: '原唱：民歌经典', reason: '美声与民歌交融的经典，严谨的演唱能让歌曲呈现最佳状态。' },
+            { title: '在那桃花盛开的地方', artist: '原唱：蒋大为', reason: '美声老歌的代表作品，精准的音准和气息控制是演唱成功的关键。' },
+            { title: '敖包相会', artist: '原唱：民歌经典', reason: '旋律简洁但要求精确，细致入微的演唱能展现歌曲的淳朴之美。' }
+          ]
+        },
+        'I-S-F-J': {
+          name: '治愈传唱者',
+          subtitle: '内倾 · 实感 · 感性 · 判断',
+          coreTrait: '性格温柔，演唱风格治愈舒缓，音色柔和如春风，能让听众在歌声中找到安宁。',
+          strengths: ['音色柔和，听感舒适温暖', '情感真挚细腻，感染力强', '对歌曲情感理解深刻'],
+          weaknesses: ['舞台表现力较弱', '音量偏小，大型场合容易淹没', '缺乏戏剧性表现张力'],
+          songs: [
+            { title: '送别', artist: '原唱：李叔同', reason: '舒缓悠远的旋律与温柔治愈的声线完美融合，令人心旷神怡。' },
+            { title: '摇篮曲', artist: '原唱：民歌经典', reason: '温柔舒缓的曲风天然契合你的声线，治愈力满分。' },
+            { title: '弯弯的月亮', artist: '原唱：刘欢', reason: '抒情而安宁的旋律，柔和的音色能让这首歌格外温馨。' },
+            { title: '乡间的小路', artist: '原唱：齐豫', reason: '轻柔舒缓的民谣风格，治愈系嗓音能完美演绎田园诗意。' }
+          ]
+        },
+        'I-N-T-P': {
+          name: '小众怀旧者',
+          subtitle: '内倾 · 直觉 · 理性 · 感知',
+          coreTrait: '性格内敛，思维独特，善于挖掘小众经典老歌的独特魅力，是老歌领域的深度探索者。',
+          strengths: ['能挖掘小众老歌的独特魅力', '对音乐有独到见解和分析力', '不受主流审美束缚，审美独立'],
+          weaknesses: ['不喜欢被规则束缚', '演唱时过于理性分析，缺少即兴情感', '选曲过于小众，共鸣面较窄'],
+          songs: [
+            { title: '橄榄树', artist: '原唱：齐豫', reason: '小众而深邃的经典，独特思维能完美诠释歌曲中的漂泊与追寻。' },
+            { title: '半个月亮爬上来', artist: '原唱：民歌经典', reason: '小众地方民歌的韵味需要独到眼光来发现和演绎。' },
+            { title: '在那银色的月光下', artist: '原唱：民歌经典', reason: '旋律独特而内敛，适合理性分析后以独特方式演绎。' }
+          ]
+        },
+        'I-N-F-P': {
+          name: '情怀吟唱者',
+          subtitle: '内倾 · 直觉 · 感性 · 感知',
+          coreTrait: '性格敏感细腻，演唱风格空灵动人，能将最微妙的情感融入歌声，是灵魂深处的歌者。',
+          strengths: ['情感表达极致，歌声空灵动人', '对歌曲意境感知力极强', '即兴演唱能力强，灵感受情绪驱动'],
+          weaknesses: ['情绪波动大，演唱状态不稳定', '过于敏感，容易受环境影响', '技术基础有时跟不上情感表达'],
+          songs: [
+            { title: '高山流水', artist: '原唱：古风经典', reason: '古风意境空灵深远，敏感细腻的声线能完美呈现超凡脱俗的意境。' },
+            { title: '枉凝眉', artist: '原唱：陈力', reason: '极致的感伤与情怀，空灵动人的演唱能将这首歌演绎到灵魂深处。' },
+            { title: '知音', artist: '原唱：李谷一', reason: '抒情老歌中的情怀之作，细腻的情感表达能让歌曲格外动人心弦。' },
+            { title: '化蝶', artist: '原唱：古风经典', reason: '古风民歌的浪漫与哀愁，空灵声线能呈现最动人的化蝶意境。' }
+          ]
+        }
+      };
+
+      // === 从localStorage读取测试结果 ===
+      var scores = null;
+      try {
+        var stored = localStorage.getItem('vpt_scores');
+        if (stored) {
+          scores = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.log('读取测试结果失败，使用默认数据');
+      }
+
+      // 默认得分（E-S-F-J）
+      var dimE = (scores && scores.dimE) ? scores.dimE : 72;
+      var dimS = (scores && scores.dimS) ? scores.dimS : 65;
+      var dimF = (scores && scores.dimF) ? scores.dimF : 78;
+      var dimJ = (scores && scores.dimJ) ? scores.dimJ : 70;
+
+      // 计算对立维度
+      var dimI = 100 - dimE;
+      var dimN = 100 - dimS;
+      var dimT = 100 - dimF;
+      var dimP = 100 - dimJ;
+
+      // 确定MBTI类型
+      var mbtiType = (dimE >= 50 ? 'E' : 'I') + '-' + (dimS >= 50 ? 'S' : 'N') + '-' + (dimF >= 50 ? 'F' : 'T') + '-' + (dimJ >= 50 ? 'J' : 'P');
+      var typeInfo = typeData[mbtiType] || typeData['E-S-F-J'];
+
+      // === 更新页面内容 ===
+      $('#mbti-code').text(mbtiType);
+      $('#mbti-name').text(typeInfo.name);
+      $('#mbti-subtitle').text(typeInfo.subtitle);
+      $('#core-trait-text').text(typeInfo.coreTrait);
+
+      // 更新得分条
+      $('#bar-e').css('width', dimE + '%');
+      $('#score-e').text(dimE);
+      $('#bar-i').css('width', dimI + '%');
+      $('#score-i').text(dimI);
+      $('#bar-s').css('width', dimS + '%');
+      $('#score-s').text(dimS);
+      $('#bar-n').css('width', dimN + '%');
+      $('#score-n').text(dimN);
+      $('#bar-f').css('width', dimF + '%');
+      $('#score-f').text(dimF);
+      $('#bar-t').css('width', dimT + '%');
+      $('#score-t').text(dimT);
+      $('#bar-j').css('width', dimJ + '%');
+      $('#score-j').text(dimJ);
+      $('#bar-p').css('width', dimP + '%');
+      $('#score-p').text(dimP);
+
+      // 更新优势列表
+      var $strengths = $('#strengths ul');
+      $strengths.empty();
+      typeInfo.strengths.forEach(function (s, i) {
+        $strengths.append(
+          '<li class="flex items-start gap-2">' +
+            '<i data-lucide="check-circle-2" class="w-4 h-4 text-primary mt-0.5 shrink-0"></i>' +
+            '<span class="text-sm text-on-surface">' + s + '</span>' +
+          '</li>'
+        );
+      });
+
+      // 更新不足列表
+      var $weaknesses = $('#weaknesses ul');
+      $weaknesses.empty();
+      typeInfo.weaknesses.forEach(function (w, i) {
+        $weaknesses.append(
+          '<li class="flex items-start gap-2">' +
+            '<i data-lucide="alert-circle" class="w-4 h-4 text-warning mt-0.5 shrink-0"></i>' +
+            '<span class="text-sm text-on-surface">' + w + '</span>' +
+          '</li>'
+        );
+      });
+
+      // 更新推荐歌曲
+      var $songs = $('#song-list');
+      $songs.empty();
+      typeInfo.songs.forEach(function (song, i) {
+        $songs.append(
+          '<div class="bg-surface rounded-xl shadow-card p-5 hover:shadow-float transition-shadow group">' +
+            '<div class="flex items-start gap-4">' +
+              '<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">' +
+                '<i data-lucide="music-2" class="w-5 h-5 text-primary"></i>' +
+              '</div>' +
+              '<div class="flex-1 min-w-0">' +
+                '<h4 class="text-base font-semibold text-on-surface mb-0.5">' + song.title + '</h4>' +
+                '<p class="text-xs text-on-surface-variant mb-2">' + song.artist + '</p>' +
+                '<p class="text-sm text-on-surface-variant leading-relaxed">' + song.reason + '</p>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      });
+
+      // 重新初始化lucide图标（动态添加的图标需要重新创建）
+      lucide.createIcons();
+
+      // === 绘制雷达图 ===
+      function drawRadar() {
+        var canvas = $('#radar-chart')[0];
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        var dpr = window.devicePixelRatio || 1;
+        var displayW = 420;
+        var displayH = 420;
+        canvas.width = displayW * dpr;
+        canvas.height = displayH * dpr;
+        canvas.style.width = displayW + 'px';
+        canvas.style.height = displayH + 'px';
+        ctx.scale(dpr, dpr);
+
+        var centerX = displayW / 2;
+        var centerY = displayH / 2;
+        var maxR = 150;
+
+        // 4个维度数据（归一化到0-1）
+        var values = [dimE / 100, dimS / 100, dimF / 100, dimJ / 100];
+        var labels = [
+          { text: '外倾 E', x: centerX, y: centerY - maxR - 20, align: 'center' },
+          { text: '实感 S', x: centerX + maxR + 25, y: centerY + 5, align: 'left' },
+          { text: '感性 F', x: centerX, y: centerY + maxR + 28, align: 'center' },
+          { text: '判断 J', x: centerX - maxR - 25, y: centerY + 5, align: 'right' }
+        ];
+
+        // 4个顶点角度（从顶部开始，顺时针：上、右、下、左）
+        var angles = [
+          -Math.PI / 2,
+          0,
+          Math.PI / 2,
+          Math.PI
+        ];
+
+        // 绘制背景网格（3层）
+        ctx.strokeStyle = 'rgba(185, 151, 91, 0.15)';
+        ctx.lineWidth = 1;
+        for (var ring = 1; ring <= 3; ring++) {
+          var r = maxR * ring / 3;
+          ctx.beginPath();
+          for (var i = 0; i < 4; i++) {
+            var px = centerX + r * Math.cos(angles[i]);
+            var py = centerY + r * Math.sin(angles[i]);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+
+        // 绘制轴线
+        ctx.strokeStyle = 'rgba(185, 151, 91, 0.2)';
+        ctx.lineWidth = 1;
+        for (var i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(centerX + maxR * Math.cos(angles[i]), centerY + maxR * Math.sin(angles[i]));
+          ctx.stroke();
+        }
+
+        // 绘制数据区域
+        ctx.beginPath();
+        for (var i = 0; i < 4; i++) {
+          var val = Math.max(0.05, values[i]); // 最小0.05，避免塌缩到中心
+          var r = maxR * val;
+          var px = centerX + r * Math.cos(angles[i]);
+          var py = centerY + r * Math.sin(angles[i]);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+
+        // 渐变填充
+        var gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR);
+        gradient.addColorStop(0, 'rgba(185, 151, 91, 0.35)');
+        gradient.addColorStop(1, 'rgba(185, 151, 91, 0.12)');
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // 描边
+        ctx.strokeStyle = 'rgba(185, 151, 91, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 绘制数据点
+        for (var i = 0; i < 4; i++) {
+          var val = Math.max(0.05, values[i]);
+          var r = maxR * val;
+          var px = centerX + r * Math.cos(angles[i]);
+          var py = centerY + r * Math.sin(angles[i]);
+
+          // 外圈光晕
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(185, 151, 91, 0.2)';
+          ctx.fill();
+
+          // 实心点
+          ctx.beginPath();
+          ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#B9975B';
+          ctx.fill();
+        }
+
+        // 绘制标签
+        ctx.font = '13px "Noto Sans SC", sans-serif';
+        ctx.fillStyle = '#7B7164';
+        for (var i = 0; i < labels.length; i++) {
+          var lbl = labels[i];
+          ctx.textAlign = lbl.align;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(lbl.text, lbl.x, lbl.y);
+        }
+
+        // 绘制分数标签
+        ctx.font = 'bold 12px "Noto Sans SC", sans-serif';
+        ctx.fillStyle = '#B9975B';
+        var scoreLabels = [
+          { val: dimE, x: centerX, y: centerY - maxR * Math.max(0.05, values[0]) - 12, align: 'center' },
+          { val: dimS, x: centerX + maxR * Math.max(0.05, values[1]) + 14, y: centerY - 8, align: 'left' },
+          { val: dimF, x: centerX, y: centerY + maxR * Math.max(0.05, values[2]) + 16, align: 'center' },
+          { val: dimJ, x: centerX - maxR * Math.max(0.05, values[3]) - 14, y: centerY - 8, align: 'right' }
+        ];
+        for (var i = 0; i < scoreLabels.length; i++) {
+          var sl = scoreLabels[i];
+          ctx.textAlign = sl.align;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(sl.val, sl.x, sl.y);
+        }
+      }
+
+      drawRadar();
+
+      // === 分享按钮交互 ===
+      $('#btn-share').on('click', function () {
+        // 分享功能 - 后续应实现：
+        // 1. 生成包含MBTI类型和类型名称的分享图片/链接
+        // 2. 调用Web Share API（navigator.share）或复制链接到剪贴板
+        // 3. 显示分享成功的提示信息
+        var shareText = '我的声乐人格类型是 ' + mbtiType + ' 「' + typeInfo.name + '」！快来测测你的声乐性格吧~';
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(shareText).then(function () {
+            alert('分享文案已复制到剪贴板！');
+          }).catch(function () {
+            alert('分享文案：' + shareText);
+          });
+        } else {
+          alert('分享文案：' + shareText);
+        }
+      });
+    });
+  </script>
+
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

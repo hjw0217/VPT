@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://lf-code-agent.coze.cn/obj/x-ai-cn/fonts/google/google-all-fonts.css" rel="stylesheet"/>
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 === */
+      --color-primary:              #B9975B;
+      --color-primary-container:    #E8D9BE;
+      --color-on-primary:           #FFFFFF;
+      /* === 背景 / 表面 === */
+      --color-background:                 #F8F4EC;
+      --color-surface-container-lowest:   #FFFFFF;
+      --color-surface:                    #FFFFFF;
+      --color-surface-container:          #EFE9DC;
+      --color-surface-container-high:     #E8E0D0;
+      --color-surface-container-highest:  #DFD6C4;
+      /* === 文字 === */
+      --color-on-surface:           #1B1712;
+      --color-on-surface-variant:   #7B7164;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #C8BFA8;
+      --color-outline-variant:  #DDD6C4;
+      /* === 圆角 === */
+      --radius-sm:   0.25rem;
+      --radius-md:   0.375rem;
+      --radius-lg:   0.5rem;
+      --radius-xl:   0.75rem;
+      --radius-2xl:  1rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 2px 8px rgba(0,0,0,0.06);
+      --shadow-float:  0 10px 25px rgba(0,0,0,0.08);
+      --shadow-dialog: 0 25px 50px rgba(0,0,0,0.12);
+      /* === 字体 === */
+      --font-sans: "Noto Sans SC", system-ui, sans-serif;
+      --font-serif: "Georgia", "Noto Serif SC", serif;
+    }
+  </style>
+
+  <style>
+    /* 题目切换动画 */
+    .question-card {
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .question-card.fade-out {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    .question-card.fade-in {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    .question-card.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* 选项卡片 hover 效果 */
+    .option-card {
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .option-card:hover {
+      border-color: #B9975B !important;
+      box-shadow: 0 4px 16px rgba(185, 151, 91, 0.15);
+    }
+    .option-card.selected {
+      border-color: #B9975B !important;
+      background-color: #FDF8EF !important;
+    }
+    .option-card.selected .option-indicator {
+      background-color: #B9975B;
+      color: #FFFFFF;
+    }
+
+    /* 进度条动画 */
+    #progress-fill {
+      transition: width 0.5s ease;
+    }
+
+    /* 选中动画 */
+    .option-indicator {
+      transition: all 0.25s ease;
+    }
+  </style>
+
+  <!-- 图片兜底 -->
+  <script>
+    document.addEventListener('error', function (e) {
+      const img = e.target;
+      if (img.tagName !== 'IMG' || img.dataset.fallback) return;
+      img.dataset.fallback = '1';
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const cat = img.getAttribute('data-category') || '其他';
+      const alt = img.getAttribute('alt') || '';
+      const label = esc(alt.length > 8 ? alt.slice(0, 8) + '…' : alt);
+      const icons = { '人物': '👤', '自然风景': '🏞', '动物': '🐾', '建筑城市': '🏙', '运动体育': '⚽', '交通工具': '🚗', '食物': '🍽', '服饰时尚': '👗', '商业科技': '💼', '游戏娱乐': '🎮', '艺术': '🎨', '其他': '🖼' };
+      const icon = icons[cat] || '🖼';
+      const w = img.width || 400, h = img.height || 300;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="45%" text-anchor="middle" font-size="${Math.min(w, h) * 0.18}" dominant-baseline="central">${icon}</text><text x="50%" y="68%" text-anchor="middle" font-size="${Math.min(w, h) * 0.07}" fill="%239ca3af" font-family="system-ui,sans-serif" dominant-baseline="central">${label}</text></svg>`;
+      img.src = 'data:image/svg+xml,' + svg;
+    }, true);
+  </script>
+</head>
+
+<body class="bg-background text-on-surface font-sans">
+
+  <!-- @nav:start -->
+  <header class="bg-surface sticky top-0 z-40 h-16 flex items-center justify-between border-b border-outline-variant/20">
+    <div class="w-full max-w-4xl mx-auto px-6 flex items-center justify-between">
+      <a href="home.html" class="flex items-center gap-2.5">
+        <i data-lucide="music" class="text-primary w-5 h-5"></i>
+        <span class="font-serif font-bold text-lg text-on-surface">声乐性格测试</span>
+      </a>
+      <nav class="flex items-center gap-1">
+        <a href="home.html" class="px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-md transition-colors">首页</a>
+        <a href="test.html" class="px-3 py-1.5 text-sm font-medium text-on-surface bg-primary/10 rounded-md transition-colors" aria-current="page">开始测试</a>
+      </nav>
+    </div>
+  </header>
+  <!-- @nav:end -->
+
+  <!-- @main-content:start -->
+  <main class="max-w-4xl mx-auto px-6 py-8">
+
+    <!-- 页面标题 -->
+    <div class="text-center mb-8">
+      <h1 class="font-serif text-3xl font-bold text-on-surface mb-2">声乐性格测试</h1>
+      <p class="text-on-surface-variant text-sm">探索你的演唱性格类型，发现属于你的声乐之路</p>
+    </div>
+
+    <!-- 进度条区域 -->
+    <div id="progress-section" class="mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span id="progress-text" class="text-sm font-medium text-on-surface-variant">题目 1 / 20</span>
+        <span id="progress-percent" class="text-sm font-medium text-primary">5%</span>
+      </div>
+      <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+        <div id="progress-fill" class="h-full bg-primary rounded-full" style="width: 5%"></div>
+      </div>
+    </div>
+
+    <!-- 维度标签 -->
+    <div id="dimension-badge" class="mb-6 flex justify-center">
+      <span id="dimension-label" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+        <i data-lucide="compass" class="w-3.5 h-3.5 mr-1.5"></i>
+        维度一：演唱动力源
+      </span>
+    </div>
+
+    <!-- 题目卡片容器 -->
+    <div id="question-container" class="relative min-h-[320px]">
+
+      <!-- 题目1 -->
+      <div class="question-card visible" id="question-1" data-question="1" data-dimension="EI" style="display:block;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">1</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">当你准备一首经典老歌时，更倾向于：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <!-- 选项A -->
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-1A" data-question="1" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">找歌友、合唱团伙伴一起讨论</span>
+            </div>
+            <!-- 选项B -->
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-1B" data-question="1" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">一个人反复听原唱、自己感受</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目2 -->
+      <div class="question-card" id="question-2" data-question="2" data-dimension="EI" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">2</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱结束后，你最在意的是：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-2A" data-question="2" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">身边歌友、听众的反馈和掌声</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-2B" data-question="2" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">自己对演唱的满意度</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目3 -->
+      <div class="question-card" id="question-3" data-question="3" data-dimension="EI" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">3</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">遇到演唱瓶颈，你会：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-3A" data-question="3" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">主动向老师、歌友请教</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-3B" data-question="3" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">自己听原唱对比、慢慢摸索</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目4 -->
+      <div class="question-card" id="question-4" data-question="4" data-dimension="EI" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">4</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">你更享受哪种演唱场景？</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-4A" data-question="4" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">广场合唱、社区歌会等多人场景</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-4B" data-question="4" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">家里练唱、公园独自演唱</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目5 -->
+      <div class="question-card" id="question-5" data-question="5" data-dimension="EI" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">5</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">学习一首新的经典老歌时：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-5A" data-question="5" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">喜欢和歌友一起练习</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-5B" data-question="5" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">独自练习，避免被打扰</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目6 -->
+      <div class="question-card" id="question-6" data-question="6" data-dimension="SN" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">6</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">选择演唱歌曲时，你更看重：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-6A" data-question="6" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">旋律熟悉、歌词好记</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-6B" data-question="6" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">歌曲有年代回忆、有深层意义</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目7 -->
+      <div class="question-card" id="question-7" data-question="7" data-dimension="SN" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">7</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱时，你对歌词的处理方式：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-7A" data-question="7" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">准确咬字、清晰发音</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-7B" data-question="7" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">灵活处理，注重韵味</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目8 -->
+      <div class="question-card" id="question-8" data-question="8" data-dimension="SN" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">8</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">学习新歌，你先从哪里入手？</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-8A" data-question="8" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">先跟着原唱唱准旋律和节奏</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-8B" data-question="8" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">先了解歌曲创作背景</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目9 -->
+      <div class="question-card" id="question-9" data-question="9" data-dimension="SN" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">9</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">你更擅长演唱哪种类型？</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-9A" data-question="9" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">旋律舒缓、情感直白的歌曲</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-9B" data-question="9" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">情感细腻、有年代回忆的歌曲</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目10 -->
+      <div class="question-card" id="question-10" data-question="10" data-dimension="SN" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">10</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱时，你更关注：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-10A" data-question="10" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">音准、节奏的准确性</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-10B" data-question="10" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">情感的层次感</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目11 -->
+      <div class="question-card" id="question-11" data-question="11" data-dimension="TF" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">11</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱出现失误时，你会：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-11A" data-question="11" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">冷静调整，快速衔接下一句</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-11B" data-question="11" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">会有点慌乱，情绪受影响</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目12 -->
+      <div class="question-card" id="question-12" data-question="12" data-dimension="TF" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">12</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">选择演唱曲目时，优先考虑：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-12A" data-question="12" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">自己的音域、音色是否适合</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-12B" data-question="12" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">自己是否喜欢，是否有情怀</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目13 -->
+      <div class="question-card" id="question-13" data-question="13" data-dimension="TF" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">13</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">歌友或老师对你提出批评：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-13A" data-question="13" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">认真倾听，分析问题改进</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-13B" data-question="13" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">先感受情绪，可能会失落</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目14 -->
+      <div class="question-card" id="question-14" data-question="14" data-dimension="TF" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">14</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱时根据什么调整状态？</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-14A" data-question="14" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">音准、气息的控制</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-14B" data-question="14" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">自身的情绪状态，跟着感觉</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目15 -->
+      <div class="question-card" id="question-15" data-question="15" data-dimension="TF" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">15</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">面对"技巧"和"情感"：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-15A" data-question="15" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">优先侧重演唱技巧</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-15B" data-question="15" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">优先侧重情感表达</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目16 -->
+      <div class="question-card" id="question-16" data-question="16" data-dimension="JP" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">16</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">你会为合唱活动做详细准备吗？</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-16A" data-question="16" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">会，提前熟悉曲目、按计划准备</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-16B" data-question="16" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">不会，大多临时熟悉</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目17 -->
+      <div class="question-card" id="question-17" data-question="17" data-dimension="JP" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">17</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">日常练习时，你更倾向于：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-17A" data-question="17" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">固定时间、有规律地练习</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-17B" data-question="17" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">随缘练习，有兴致就唱</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目18 -->
+      <div class="question-card" id="question-18" data-question="18" data-dimension="JP" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">18</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">演唱结束后，你会：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-18A" data-question="18" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">总结优点和不足，下次改进</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-18B" data-question="18" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">随缘感受，不刻意总结</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目19 -->
+      <div class="question-card" id="question-19" data-question="19" data-dimension="JP" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">19</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">有演唱任务时，你会：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-19A" data-question="19" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">提前很久开始准备</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-19B" data-question="19" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">临近活动再准备</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目20 -->
+      <div class="question-card" id="question-20" data-question="20" data-dimension="JP" style="display:none;">
+        <div class="bg-surface rounded-xl shadow-card p-8">
+          <div class="text-center mb-8">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold mb-4">20</span>
+            <h2 class="font-serif text-xl font-semibold text-on-surface leading-relaxed">你对演唱的追求是：</h2>
+          </div>
+          <div class="space-y-4 max-w-lg mx-auto">
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-20A" data-question="20" data-option="A">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">A</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">希望更规范、更好听，有明确目标</span>
+            </div>
+            <div class="option-card bg-surface border-2 border-outline-variant/30 rounded-xl p-5 flex items-start gap-4" id="option-20B" data-question="20" data-option="B">
+              <span class="option-indicator shrink-0 w-8 h-8 rounded-full border-2 border-outline flex items-center justify-center text-sm font-bold text-on-surface-variant">B</span>
+              <span class="text-on-surface text-sm leading-relaxed pt-1">享受过程，开心就好</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 底部操作区 -->
+    <div id="action-bar" class="mt-8 flex items-center justify-between">
+      <button id="btn-prev" class="bg-surface-container text-on-surface px-6 py-2.5 rounded-md text-sm font-medium hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        上一题
+      </button>
+      <button id="btn-next" class="bg-primary text-on-primary px-6 py-2.5 rounded-md text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+        下一题
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+      </button>
+      <a id="btn-result" href="result.html" class="bg-primary text-on-primary px-6 py-2.5 rounded-md text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center gap-2" style="display:none;">
+        查看结果
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+      </a>
+    </div>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <script>
+  $(function() {
+    // ========== 状态管理 ==========
+    var currentQuestion = 1;
+    var totalQuestions = 20;
+    var answers = {}; // { 1: 'A', 2: 'B', ... }
+    var isAnimating = false;
+
+    // 维度映射
+    var dimensionMap = {
+      1: 'EI', 2: 'EI', 3: 'EI', 4: 'EI', 5: 'EI',
+      6: 'SN', 7: 'SN', 8: 'SN', 9: 'SN', 10: 'SN',
+      11: 'TF', 12: 'TF', 13: 'TF', 14: 'TF', 15: 'TF',
+      16: 'JP', 17: 'JP', 18: 'JP', 19: 'JP', 20: 'JP'
+    };
+
+    // 维度名称映射
+    var dimensionNames = {
+      'EI': '维度一：演唱动力源',
+      'SN': '维度二：演唱表达偏好',
+      'TF': '维度三：演唱决策方式',
+      'JP': '维度四：演唱习惯'
+    };
+
+    // 维度图标映射
+    var dimensionIcons = {
+      'EI': 'compass',
+      'SN': 'eye',
+      'TF': 'scale',
+      'JP': 'clock'
+    };
+
+    // ========== 更新进度条 ==========
+    function updateProgress() {
+      var questionNum = currentQuestion;
+      var percent = Math.round((questionNum / totalQuestions) * 100);
+      $('#progress-text').text('题目 ' + questionNum + ' / ' + totalQuestions);
+      $('#progress-percent').text(percent + '%');
+      $('#progress-fill').css('width', percent + '%');
+    }
+
+    // ========== 更新维度标签 ==========
+    function updateDimension() {
+      var dim = dimensionMap[currentQuestion];
+      var name = dimensionNames[dim];
+      var icon = dimensionIcons[dim];
+      $('#dimension-label').html('<i data-lucide="' + icon + '" class="w-3.5 h-3.5 mr-1.5"></i>' + name);
+      lucide.createIcons();
+    }
+
+    // ========== 更新按钮状态 ==========
+    function updateButtons() {
+      // 上一题按钮
+      if (currentQuestion === 1) {
+        $('#btn-prev').prop('disabled', true);
+      } else {
+        $('#btn-prev').prop('disabled', false);
+      }
+
+      // 下一题 / 查看结果按钮
+      if (currentQuestion === totalQuestions) {
+        $('#btn-next').hide();
+        if (answers[currentQuestion]) {
+          $('#btn-result').show();
+        } else {
+          $('#btn-result').hide();
+        }
+      } else {
+        $('#btn-result').hide();
+        if (answers[currentQuestion]) {
+          $('#btn-next').prop('disabled', false);
+        } else {
+          $('#btn-next').prop('disabled', true);
+        }
+        $('#btn-next').show();
+      }
+    }
+
+    // ========== 切换题目（带动画） ==========
+    function goToQuestion(targetNum, direction) {
+      if (isAnimating || targetNum < 1 || targetNum > totalQuestions || targetNum === currentQuestion) return;
+      isAnimating = true;
+
+      var $current = $('#question-' + currentQuestion);
+      var $target = $('#question-' + targetNum);
+
+      // 淡出当前题目
+      $current.addClass('fade-out');
+
+      setTimeout(function() {
+        $current.hide().removeClass('visible fade-out');
+
+        // 显示目标题目（从右侧进入）
+        $target.addClass('fade-in').show();
+
+        // 触发重排后添加 visible
+        setTimeout(function() {
+          $target.removeClass('fade-in').addClass('visible');
+        }, 20);
+
+        currentQuestion = targetNum;
+        updateProgress();
+        updateDimension();
+        updateButtons();
+        highlightSelected();
+
+        setTimeout(function() {
+          isAnimating = false;
+        }, 400);
+      }, 350);
+    }
+
+    // ========== 高亮已选选项 ==========
+    function highlightSelected() {
+      // 清除所有选中状态
+      $('.option-card').removeClass('selected');
+      $('.option-indicator').css({ 'background-color': '', 'color': '' });
+
+      // 设置当前题目的选中状态
+      var selected = answers[currentQuestion];
+      if (selected) {
+        var $option = $('#option-' + currentQuestion + selected);
+        $option.addClass('selected');
+        $option.find('.option-indicator').css({ 'background-color': '#B9975B', 'color': '#FFFFFF' });
+      }
+    }
+
+    // ========== 选项点击事件 ==========
+    $('#question-container').on('click', '.option-card', function() {
+      if (isAnimating) return;
+
+      var questionNum = parseInt($(this).data('question'));
+      var option = $(this).data('option');
+
+      // 记录答案（A=1分，B=0分）
+      answers[questionNum] = option;
+
+      // 高亮选中
+      highlightSelected();
+
+      // 更新按钮
+      updateButtons();
+
+      // 自动跳转下一题（延迟以显示选中效果）
+      if (questionNum < totalQuestions) {
+        setTimeout(function() {
+          goToQuestion(questionNum + 1, 'next');
+        }, 500);
+      }
+    });
+
+    // ========== 上一题按钮 ==========
+    $('#btn-prev').on('click', function() {
+      if (currentQuestion > 1) {
+        goToQuestion(currentQuestion - 1, 'prev');
+      }
+    });
+
+    // ========== 下一题按钮 ==========
+    $('#btn-next').on('click', function() {
+      if (currentQuestion < totalQuestions && answers[currentQuestion]) {
+        goToQuestion(currentQuestion + 1, 'next');
+      }
+    });
+
+    // ========== 查看结果按钮 ==========
+    $('#btn-result').on('click', function(e) {
+      e.preventDefault();
+
+      // 计算各维度得分
+      var scores = { 'EI': 0, 'SN': 0, 'TF': 0, 'JP': 0 };
+
+      for (var q = 1; q <= totalQuestions; q++) {
+        if (answers[q] === 'A') {
+          scores[dimensionMap[q]] += 1;
+        }
+        // B选项0分，不需要加
+      }
+
+      // 确定每个维度的倾向
+      var result = {};
+      result['EI'] = scores['EI'] >= 3 ? 'E' : 'I'; // 5题中>=3选A则为外倾
+      result['SN'] = scores['SN'] >= 3 ? 'S' : 'N';
+      result['TF'] = scores['TF'] >= 3 ? 'T' : 'F';
+      result['JP'] = scores['JP'] >= 3 ? 'J' : 'P';
+
+      var typeCode = result['EI'] + result['SN'] + result['TF'] + result['JP'];
+
+      // 存储到 localStorage
+      localStorage.setItem('vpt_scores', JSON.stringify(scores));
+      localStorage.setItem('vpt_result', JSON.stringify(result));
+      localStorage.setItem('vpt_type', typeCode);
+      localStorage.setItem('vpt_answers', JSON.stringify(answers));
+
+      // 跳转到结果页
+      window.location.href = 'result.html';
+    });
+
+    // ========== 初始化 ==========
+    updateProgress();
+    updateDimension();
+    updateButtons();
+    highlightSelected();
+  });
+  </script>
+
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>
