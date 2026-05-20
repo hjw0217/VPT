@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import html2canvas from 'html2canvas';
-import { CheckCircle, AlertTriangle, Music, RefreshCw, Share2, Download, ArrowLeft } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Music, RefreshCw, Share2, Download, ArrowLeft, Mic2, Music2, Ear, Heart } from 'lucide-react';
 import { mbtiTypes, type MBTIType } from '@/lib/mbti-data';
 
 interface TestResult {
@@ -16,139 +16,118 @@ const defaultResult: TestResult = {
   scores: { EI: 3, SN: 3, TF: 2, JP: 4 },
 };
 
-function RadarChart({ scores }: { scores: { EI: number; SN: number; TF: number; JP: number } }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+// 维度标签映射
+const dimensionLabels: Record<string, { label: string; icon: string; letterA: string; letterB: string; nameA: string; nameB: string }> = {
+  EI: { label: '演唱动力源', icon: 'mic', letterA: 'E', letterB: 'I', nameA: '外倾', nameB: '内倾' },
+  SN: { label: '演唱表达', icon: 'ear', letterA: 'S', letterB: 'N', nameA: '实感', nameB: '直觉' },
+  TF: { label: '演唱决策', icon: 'heart', letterA: 'T', letterB: 'F', nameA: '理性', nameB: '感性' },
+  JP: { label: '演唱习惯', icon: 'music', letterA: 'J', letterB: 'P', nameA: '判断', nameB: '感知' },
+};
 
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    // Responsive size: fit within parent, max 380px
-    const parentWidth = canvas.parentElement?.clientWidth || 380;
-    const size = Math.min(parentWidth, 380);
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    ctx.scale(dpr, dpr);
-
-    const cx = size / 2;
-    const cy = size / 2;
-    const maxR = size * 0.35;
-    const levels = 5;
-
-    const labels = ['外倾 E', '实感 S', '理性 T', '判断 J'];
-    const values = [scores.EI / 5, scores.SN / 5, scores.TF / 5, scores.JP / 5];
-    const numAxes = 4;
-
-    ctx.clearRect(0, 0, size, size);
-
-    // Draw grid
-    for (let l = 1; l <= levels; l++) {
-      const r = (maxR * l) / levels;
-      ctx.beginPath();
-      for (let i = 0; i < numAxes; i++) {
-        const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = l === levels ? '#C8BFA8' : '#DDD6C4';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-
-    // Draw axes
-    for (let i = 0; i < numAxes; i++) {
-      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
-      ctx.strokeStyle = '#DDD6C4';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
-
-    // Draw data polygon
-    ctx.beginPath();
-    for (let i = 0; i < numAxes; i++) {
-      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const r = maxR * values[i];
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(185, 151, 91, 0.2)';
-    ctx.fill();
-    ctx.strokeStyle = '#B9975B';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Draw data points
-    for (let i = 0; i < numAxes; i++) {
-      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const r = maxR * values[i];
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#B9975B';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-    }
-
-    // Draw labels
-    const fontSize = Math.max(14, size * 0.048);
-    ctx.font = `${fontSize}px "Georgia", serif`;
-    ctx.fillStyle = '#1B1712';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let i = 0; i < numAxes; i++) {
-      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const labelR = maxR + size * 0.09;
-      const x = cx + labelR * Math.cos(angle);
-      const y = cy + labelR * Math.sin(angle);
-      ctx.fillText(labels[i], x, y);
-    }
-  }, [scores]);
-
-  useEffect(() => {
-    draw();
-    // Redraw on resize
-    const handleResize = () => draw();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [draw]);
-
-  return (
-    <div className="w-full flex justify-center">
-      <canvas ref={canvasRef} className="mx-auto max-w-full" />
-    </div>
-  );
+function DimensionIcon({ icon, className }: { icon: string; className?: string }) {
+  switch (icon) {
+    case 'mic': return <Mic2 className={className} />;
+    case 'ear': return <Ear className={className} />;
+    case 'heart': return <Heart className={className} />;
+    case 'music': return <Music2 className={className} />;
+    default: return <Mic2 className={className} />;
+  }
 }
 
-function ScoreBar({ leftLabel, rightLabel, leftScore, rightScore }: {
-  leftLabel: string; rightLabel: string; leftScore: number; rightScore: number;
-}) {
-  const total = leftScore + rightScore;
-  const leftPercent = total > 0 ? (leftScore / 5) * 100 : 0;
+function TypeBadge({ mbtiType, scores }: { mbtiType: MBTIType; scores: { EI: number; SN: number; TF: number; JP: number } }) {
+  const dims = ['EI', 'SN', 'TF', 'JP'] as const;
+  const dominantLetters = mbtiType.code.replace(/-/g, '');
+
   return (
-    <div className="flex items-center gap-3 sm:gap-4">
-      <span className="text-sm sm:text-base font-bold text-primary w-6 sm:w-8 text-right">{leftLabel}</span>
-      <div className="flex-1 h-3 sm:h-4 bg-muted rounded-full overflow-hidden relative">
-        <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${leftPercent}%` }} />
+    <div className="relative flex flex-col items-center">
+      {/* 外圈装饰环 */}
+      <div className="relative w-56 h-56 sm:w-72 sm:h-72 flex items-center justify-center">
+        {/* 最外层 - 虚线圆环 */}
+        <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary/20" />
+        {/* 主圆环 */}
+        <div className="absolute inset-2 sm:inset-3 rounded-full border-2 border-primary/40" />
+        {/* 内圆背景 */}
+        <div className="absolute inset-4 sm:inset-6 rounded-full bg-gradient-to-b from-primary/[0.08] to-primary/[0.03]" />
+        {/* 顶部小装饰 */}
+        <div className="absolute -top-1 sm:top-0 left-1/2 -translate-x-1/2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/20 flex items-center justify-center">
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary/60" />
+        </div>
+        {/* 底部小装饰 */}
+        <div className="absolute -bottom-1 sm:bottom-0 left-1/2 -translate-x-1/2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/20 flex items-center justify-center">
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary/60" />
+        </div>
+
+        {/* 中心内容 */}
+        <div className="relative z-10 text-center">
+          <div className="font-serif text-3xl sm:text-4xl font-bold text-primary tracking-[0.15em] mb-1">
+            {mbtiType.code}
+          </div>
+          <div className="w-10 sm:w-12 h-px bg-primary/40 mx-auto mb-1.5 sm:mb-2" />
+          <div className="font-serif text-lg sm:text-xl font-bold text-foreground mb-0.5">
+            {mbtiType.name}
+          </div>
+          <div className="text-xs sm:text-sm text-muted-foreground max-w-[120px] sm:max-w-[150px] leading-snug">
+            {mbtiType.subtitle}
+          </div>
+        </div>
+
+        {/* 四个维度标签 - 分布在圆环四周 */}
+        {dims.map((dim, i) => {
+          const dimInfo = dimensionLabels[dim];
+          const score = scores[dim];
+          const isA = score >= 3;
+          const angle = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+          const radius = 100; // sm 下会通过 scale 调整
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius;
+          const activeLetter = isA ? dimInfo.letterA : dimInfo.letterB;
+          const activeName = isA ? dimInfo.nameA : dimInfo.nameB;
+
+          return (
+            <div
+              key={dim}
+              className="absolute flex flex-col items-center gap-0.5"
+              style={{
+                left: '50%',
+                top: '50%',
+                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+              }}
+            >
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-card shadow-card border border-primary/20 flex items-center justify-center">
+                <DimensionIcon icon={dimInfo.icon} className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              </div>
+              <span className="text-[10px] sm:text-xs font-bold text-primary">{activeLetter}</span>
+              <span className="text-[9px] sm:text-[10px] text-muted-foreground leading-none">{activeName}</span>
+            </div>
+          );
+        })}
       </div>
-      <span className="text-sm sm:text-base font-bold text-muted-foreground w-6 sm:w-8">{rightLabel}</span>
+
+      {/* 四维度得分条 */}
+      <div className="mt-6 sm:mt-8 w-full max-w-xs sm:max-w-sm space-y-3 sm:space-y-4">
+        {dims.map((dim) => {
+          const dimInfo = dimensionLabels[dim];
+          const score = scores[dim];
+          const isA = score >= 3;
+          const leftPercent = (score / 5) * 100;
+
+          return (
+            <div key={dim} className="flex items-center gap-2.5 sm:gap-3">
+              <span className={`text-sm sm:text-base font-bold w-5 sm:w-6 text-right ${isA ? 'text-primary' : 'text-muted-foreground'}`}>{dimInfo.letterA}</span>
+              <div className="flex-1 h-2.5 sm:h-3 bg-muted rounded-full overflow-hidden relative">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${leftPercent}%`,
+                    background: isA ? 'linear-gradient(90deg, rgba(185,151,91,0.5), rgba(185,151,91,0.9))' : 'linear-gradient(90deg, rgba(123,113,100,0.3), rgba(123,113,100,0.6))',
+                  }}
+                />
+              </div>
+              <span className={`text-sm sm:text-base font-bold w-5 sm:w-6 ${!isA ? 'text-primary' : 'text-muted-foreground'}`}>{dimInfo.letterB}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -245,6 +224,14 @@ export default function ResultPage() {
     );
   }
 
+  const dims = ['EI', 'SN', 'TF', 'JP'] as const;
+  const dimLabels = {
+    EI: { letterA: 'E', letterB: 'I', nameA: '外倾', nameB: '内倾' },
+    SN: { letterA: 'S', letterB: 'N', nameA: '实感', nameB: '直觉' },
+    TF: { letterA: 'T', letterB: 'F', nameA: '理性', nameB: '感性' },
+    JP: { letterA: 'J', letterB: 'P', nameA: '判断', nameB: '感知' },
+  };
+
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Share Card - hidden visual, used for image capture */}
@@ -265,6 +252,24 @@ export default function ResultPage() {
           </div>
           {/* Core trait */}
           <div style={{ textAlign: 'center', fontSize: 15, color: '#1B1712', lineHeight: 1.8, marginBottom: 24, padding: '0 16px' }}>{mbtiType.coreTrait}</div>
+          {/* Dimension bars */}
+          <div style={{ marginBottom: 24 }}>
+            {dims.map((dim) => {
+              const info = dimLabels[dim];
+              const score = result.scores[dim];
+              const isA = score >= 3;
+              const leftPercent = (score / 5) * 100;
+              return (
+                <div key={dim} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 13, fontWeight: 'bold', width: 18, textAlign: 'right', color: isA ? '#B9975B' : '#7B7164' }}>{info.letterA}</span>
+                  <div style={{ flex: 1, height: 8, background: '#E8E2D6', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${leftPercent}%`, background: isA ? 'linear-gradient(90deg, rgba(185,151,91,0.5), rgba(185,151,91,0.9))' : 'linear-gradient(90deg, rgba(123,113,100,0.3), rgba(123,113,100,0.6))', borderRadius: 4 }} />
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 'bold', width: 18, color: !isA ? '#B9975B' : '#7B7164' }}>{info.letterB}</span>
+                </div>
+              );
+            })}
+          </div>
           {/* Strengths & Weaknesses */}
           <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
             <div style={{ flex: 1 }}>
@@ -317,20 +322,14 @@ export default function ResultPage() {
         <div className="w-12 sm:w-16 h-px bg-primary/30" />
       </div>
 
-      {/* Radar Chart */}
+      {/* Type Badge / Emblem */}
       <section className="mb-8 sm:mb-12">
         <div className="text-center mb-6 sm:mb-8">
-          <h3 className="font-serif text-xl sm:text-2xl font-bold text-foreground mb-1.5 sm:mb-2">性格维度分析</h3>
-          <p className="text-sm sm:text-base text-muted-foreground">你的四维度得分分布</p>
+          <h3 className="font-serif text-xl sm:text-2xl font-bold text-foreground mb-1.5 sm:mb-2">性格徽标</h3>
+          <p className="text-sm sm:text-base text-muted-foreground">你的声乐性格四维度标识</p>
         </div>
-        <div className="bg-card rounded-2xl shadow-card p-5 sm:p-8 sm:p-10">
-          <RadarChart scores={result.scores} />
-          <div className="mt-8 sm:mt-10 max-w-md mx-auto space-y-4 sm:space-y-5">
-            <ScoreBar leftLabel="E" rightLabel="I" leftScore={result.scores.EI} rightScore={5 - result.scores.EI} />
-            <ScoreBar leftLabel="S" rightLabel="N" leftScore={result.scores.SN} rightScore={5 - result.scores.SN} />
-            <ScoreBar leftLabel="T" rightLabel="F" leftScore={result.scores.TF} rightScore={5 - result.scores.TF} />
-            <ScoreBar leftLabel="J" rightLabel="P" leftScore={result.scores.JP} rightScore={5 - result.scores.JP} />
-          </div>
+        <div className="bg-card rounded-2xl shadow-card p-5 sm:p-8 flex flex-col items-center">
+          <TypeBadge mbtiType={mbtiType} scores={result.scores} />
         </div>
       </section>
 
@@ -476,8 +475,6 @@ export default function ResultPage() {
           ))}
         </div>
       </section>
-
-
     </main>
   );
 }
