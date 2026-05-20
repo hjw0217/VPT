@@ -334,6 +334,44 @@ export default function ResultPage() {
         </div>
       </section>
 
+      {/* Share Actions */}
+      <section className="text-center py-6 sm:py-8 space-y-4 sm:space-y-5">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
+          <button
+            onClick={handleCopyImage}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 sm:gap-2.5 bg-primary text-primary-foreground px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float disabled:opacity-60 cursor-pointer w-full sm:w-auto justify-center"
+          >
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            {sharing ? '生成中...' : '分享结果图片'}
+          </button>
+          <button
+            onClick={handleShareImage}
+            disabled={sharing}
+            className="inline-flex items-center gap-2 sm:gap-2.5 border-2 border-primary text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-60 w-full sm:w-auto justify-center"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            保存图片
+          </button>
+        </div>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
+          <Link
+            href="/test"
+            className="inline-flex items-center gap-2 sm:gap-2.5 bg-foreground text-background px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
+            重新测试
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            返回首页
+          </Link>
+        </div>
+      </section>
+
       {/* Divider */}
       <div className="flex items-center justify-center mb-8 sm:mb-12">
         <div className="w-12 sm:w-16 h-px bg-primary/30" />
@@ -439,43 +477,7 @@ export default function ResultPage() {
         </div>
       </section>
 
-      {/* Actions */}
-      <section className="text-center py-8 sm:py-10 space-y-5 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5">
-          <button
-            onClick={handleCopyImage}
-            disabled={sharing}
-            className="inline-flex items-center gap-2 sm:gap-2.5 bg-primary text-primary-foreground px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-float disabled:opacity-60 cursor-pointer w-full sm:w-auto justify-center"
-          >
-            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-            {sharing ? '生成中...' : '分享结果图片'}
-          </button>
-          <button
-            onClick={handleShareImage}
-            disabled={sharing}
-            className="inline-flex items-center gap-2 sm:gap-2.5 border-2 border-primary text-primary px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-primary/5 transition-colors cursor-pointer disabled:opacity-60 w-full sm:w-auto justify-center"
-          >
-            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-            保存图片
-          </button>
-        </div>
-        <Link
-          href="/test"
-          className="inline-flex items-center gap-2 sm:gap-2.5 bg-foreground text-background px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:opacity-90 active:scale-[0.98] transition-all"
-        >
-          <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
-          重新测试
-        </Link>
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            返回首页
-          </Link>
-        </div>
-      </section>
+
     </main>
   );
 }
