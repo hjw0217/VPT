@@ -31,6 +31,26 @@
 
 - 项目文件（如 app 目录、pages 目录、components 等）默认初始化到 `src/` 目录下。
 
+## 项目说明：声乐性格测试（VPT）
+
+基于MBTI四维度划分逻辑，面向中老年用户的声乐性格测试网页应用。
+
+### 核心页面
+- `/` (首页) — 英雄区介绍、四维度卡片、8种人格预览、开始测试入口
+- `/test` (测试页) — 20道MBTI声乐性格测试题、进度条、维度标签、选项交互
+- `/result` (结果页) — MBTI类型展示、Canvas雷达图可视化、性格解析、音乐推荐
+
+### 关键文件
+- `src/lib/mbti-data.ts` — 20道题目数据、8种MBTI类型定义、评分计算逻辑
+- `src/app/test/page.tsx` — 测试问卷交互（'use client'）
+- `src/app/result/page.tsx` — 结果展示+雷达图（'use client'，Canvas绑定）
+- `src/app/globals.css` — 轻奢风Design Token（#F8F4EC底色+#B9975B金色主色）
+
+### 测试逻辑
+- 每维度5题，A选项=1分，B选项=0分
+- 每维度≥3分取A倾向（E/S/T/J），<3分取B倾向（I/N/F/P）
+- 结果存localStorage（key: vpt_result），结果页读取并渲染
+
 ## 包管理规范
 
 **仅允许使用 pnpm** 作为包管理器，**严禁使用 npm 或 yarn**。
