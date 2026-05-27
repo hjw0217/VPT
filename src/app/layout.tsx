@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inspector } from 'react-dev-inspector';
 import Link from 'next/link';
 import { Music } from 'lucide-react';
+import BaiduAnalytics from '@/components/baidu-analytics';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="bg-background text-foreground font-sans antialiased">
+        <BaiduAnalytics />
         {isDev && <Inspector />}
         <header className="bg-card sticky top-0 z-40 h-14 sm:h-[72px] flex items-center justify-between border-b border-outline-variant/20">
           <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 flex items-center justify-between">
